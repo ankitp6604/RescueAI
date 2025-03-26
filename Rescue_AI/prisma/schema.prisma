@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model EmergencyFacility {
+  id        String     @id @default(uuid())
+  name      String
+  type      FacilityType  // POLICE, FIRE, HOSPITAL
+  latitude  Float
+  longitude Float
+  address   String
+  city      String
+  province  String
+  dispatches Dispatch[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Emergency {
+  id           String    @id @default(uuid())
+  type         EmergencyType
+  priority     Int
+  callerName   String
+  callerNumber String
+  location     String
+  latitude     Float?
+  longitude    Float?
+  transcript   String
+  status       EmergencyStatus @default(OPEN)
+  dispatches   Dispatch[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Dispatch {
+  id               String           @id @default(uuid())
+  emergency        Emergency        @relation(fields: [emergencyId], references: [id])
+  emergencyId      String
+  facility         EmergencyFacility @relation(fields: [facilityId], references: [id])
+  facilityId       String
+  status          DispatchStatus    @default(PENDING)
+  assignedUnit     String?
+  estimatedArrival DateTime?
+  notes           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+enum FacilityType {
+  POLICE
+  FIRE
+  HOSPITAL
+}
+
+enum EmergencyType {
+  POLICE
+  FIRE
+  MEDICAL
+}
+
+enum EmergencyStatus {
+  OPEN
+  ASSIGNED
+  CLOSED
+}
+
+enum DispatchStatus {
+  PENDING
+  UNIT_ASSIGNED
+  COMPLETED
+}
